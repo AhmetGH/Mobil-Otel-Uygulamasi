@@ -2,54 +2,30 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import CreateHotel from './createHotel';
-import UpdateHotel from './updateHotel';
-import ListHotel from './listHotel';
 
 const Stack = createStackNavigator();
 
-export default function MenuHotel({ navigation }) {
-  const navigateToUpdateHotel = () => {
-    navigation.navigate('UpdateHotel');
-  };
+export default function App({ navigation }) {
 
-  const navigateToListHotel = () => {
-    navigation.navigate('ListHotel');
-  };
-
-  const navigateToCreateHotel = () => {
-    navigation.navigate('CreateHotel');
-  };
-
-  return (
-    <Stack.Navigator>
-      <Stack.Screen name="MenuScreen" component={MenuScreen} />
-      <Stack.Screen name="CreateHotel" component={CreateHotel} />
-      <Stack.Screen name="UpdateHotel" component={UpdateHotel} />
-      <Stack.Screen name="ListHotel" component={ListHotel} />
-    </Stack.Navigator>
-  );
-
-  function MenuScreen() {
     return (
       <View style={styles.container}>
         <Text style={styles.heading}>Otel Menüsü</Text>
 
-        <TouchableOpacity style={styles.menuItem} onPress={navigateToCreateHotel}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate("CreateHotel")}>
           <Text style={styles.menuText}>Oda Ekle</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem} onPress={navigateToUpdateHotel}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate("UpdateHotel")}>
           <Text style={styles.menuText}>Oda Güncelle</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem} onPress={navigateToListHotel}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate("ListHotel")}>
           <Text style={styles.menuText}>Odaları Listele</Text>
         </TouchableOpacity>
       </View>
     );
-  }
 }
+
 
 const styles = StyleSheet.create({
   container: {

@@ -4,7 +4,7 @@ import { Picker } from '@react-native-picker/picker';
 import { collection, query, where, getDocs,updateDoc } from "firebase/firestore";
 import { db } from '../firebase';
 
-export default function App(UpdateHotel) {
+export default function App({navigation}) {
   const [maliyet, setMaliyet] = useState('');
   const [odaNumarasi, setOdaNumarasi] = useState('');
   const [selectedRoomType, setSelectedRoomType] = useState('singleRoom');
