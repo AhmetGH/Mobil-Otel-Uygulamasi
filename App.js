@@ -1,48 +1,49 @@
 // app.js
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+
+import React, { useState, useEffect } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import MenuHotel from './crudHotel/menuHotel';
-import CreateHotel from './crudHotel/createHotel';
-import UpdateHotel from './crudHotel/updateHotel';
-import ListHotel from './crudHotel/listHotel';
+import { NavigationContainer } from '@react-navigation/native';
 import Login from './login/login';
 import Register from './login/register';
-
+import MainMenu from './mainMenu/mainMenu';
 
 const Stack = createStackNavigator();
-const Drawer = createDrawerNavigator();
 
-function CrudMenu(){
-  return(
-  <Stack.Navigator initialRouteName="MenuHotel">
-  <Stack.Screen name="MenuHotel" component={MenuHotel} />
-  <Stack.Screen name="CreateHotel" component={CreateHotel} />
-  <Stack.Screen name="UpdateHotel" component={UpdateHotel} />
-  <Stack.Screen name="ListHotel" component={ListHotel} />
-  </Stack.Navigator>
-  );
-}
+export default function App({ route, navigation }) {
+  const [isLoggedIn, setLoggedIn] = useState(false);
 
-function LoginMenu(){
-  return(
-  <Stack.Navigator initialRouteName="Login">
-  <Stack.Screen name="Login" component={Login} />
-  <Stack.Screen name="Register" component={Register} />
-  </Stack.Navigator>
-  );
-}
+  useEffect(() => {
+    if (route && route.params && route.params.userId && !isLoggedIn) {
+      setLoggedIn(true);
+      // Eğer giriş yapıldıysa, MainMenu ekranına git
+      navigation.navigate('MainMenu', { userId: route.params.userId });
+    }
+  }, [route, isLoggedIn, navigation]);
 
-export default function App() {
   return (
-    <NavigationContainer>
-      <Drawer.Navigator initialRouteName="Login">
-        <Drawer.Screen name="CrudMenu" component={CrudMenu} />
-        <Drawer.Screen name="LoginMenu" component={LoginMenu} />
-      </Drawer.Navigator>
+    <NavigationContainer independent={true}>
+    <Stack.Navigator initialRouteName="LoginMenu">
+      <Stack.Screen name="Login" component={Login} options={{headerShown: false}}/>
+      <Stack.Screen name="Register" component={Register} />
+      <Stack.Screen name="MainMenu" component={MainMenu} options={{headerShown: false}}/>
+    </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
-
+/*<NavigationContainer>
+      <Drawer.Navigator initialRouteName={isLoggedIn ? "ReservationMenu" : "LoginMenu"} drawerType={isLoggedIn ? 'slide' : 'front'}>
+        {isLoggedIn ? (
+          <>
+            <Drawer.Screen name="CrudMenu" component={CrudMenu} />
+            <Drawer.Screen name="ReservationMenu" component={ReservationMenu} />
+          </>
+        ) : (
+          <Drawer.Screen
+            name="LoginMenu"
+            component={LoginMenu}
+            options={{ swipeEnabled: false }}
+          />
+        )}
+      </Drawer.Navigator>
+    </NavigationContainer>*/
