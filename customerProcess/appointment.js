@@ -18,8 +18,7 @@ const Appointment = ({ route }) => {
     'Çocuklu çift kişilik oda',
   ];
 
-  const handleRoomSelection = (index) => {
-    // Seçilen oda bilgileri
+  const handleRoomSelection = async (index) => {
     const selectedRoom = {
       roomType: roomTypes[index],
       image: images[index],
@@ -27,6 +26,7 @@ const Appointment = ({ route }) => {
 
     // Kullanıcı ID'si ve seçilen oda bilgileri ile Room sayfasına yönlendirme
     navigation.navigate('Room', { userId, selectedRoom });
+    
   };
 
   useEffect(() => {
