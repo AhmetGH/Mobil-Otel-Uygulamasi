@@ -1,145 +1,108 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { collection, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+// RoomResult.js
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 
+const turkishToDbDayMap = {
+  'Pazartesi': 'Monday',
+  'Salı': 'Tuesday',
+  'Çarşamba': 'Wednesday',
+  'Perşembe': 'Thursday',
+  'Cuma': 'Friday',
+  'Cumartesi': 'Saturday',
+  'Pazar': 'Sunday',
+};
+
+const turkishRoomTypes = {
+  'singleRoom': 'Tek Kişilik Oda',
+  'doubleRoom': 'Çift Kişilik Oda',
+  'doubleRoomWithChild': 'Çocuklu Çift Kişilik Oda',
+};
+
 const RoomResult = ({ route }) => {
-  const userId = route.params?.userId;
-  const selectedRoomIds = route.params?.availableRooms;
-  const selectedRoomType = route.params?.selectedRoom;
-  const [selectedRooms, setSelectedRooms] = useState([]);
+  const { userId } = route.params;
+  const [reservationData, setReservationData] = useState([]);
 
   useEffect(() => {
-    const getSelectedRooms = async () => {
-      const selectedRoomsData = [];
+    const fetchReservationData = async () => {
+      try {
+        // Tüm odaların koleksiyonlarını gezip, userId ile eşleşen rezervasyonları bul
+        const rooms = ['singleRoom', 'doubleRoom', 'doubleRoomWithChild'];
+        const reservations = [];
 
-      for (const roomId of selectedRoomIds) {
-        const roomDocRef = doc(db, selectedRoomType, roomId);
-        const roomDocSnapshot = await getDoc(roomDocRef);
+        for (const roomType of rooms) {
+          const roomRef = collection(db, roomType);
+          const querySnapshot = await getDocs(roomRef);
 
-        if (roomDocSnapshot.exists()) {
-          const roomData = roomDocSnapshot.data();
-          selectedRoomsData.push(roomData);
+          querySnapshot.forEach(doc => {
+            const roomData = doc.data();
+
+            // Eğer userId ile eşleşen bir rezervasyon varsa, bu bilgileri reservations listesine ekle
+            if (roomData[turkishToDbDayMap['Pazartesi']] === userId || roomData[turkishToDbDayMap['Salı']] === userId ||
+                roomData[turkishToDbDayMap['Çarşamba']] === userId || roomData[turkishToDbDayMap['Perşembe']] === userId ||
+                roomData[turkishToDbDayMap['Cuma']] === userId || roomData[turkishToDbDayMap['Cumartesi']] === userId ||
+                roomData[turkishToDbDayMap['Pazar']] === userId) {
+              reservations.push({
+                roomType: turkishRoomTypes[roomType],
+                roomNo: roomData.roomNo,
+                days: Object.keys(turkishToDbDayMap).filter(day => roomData[turkishToDbDayMap[day]] === userId),
+              });
+            }
+          });
         }
-      }
 
-      setSelectedRooms(selectedRoomsData);
+        setReservationData(reservations);
+      } catch (error) {
+        console.error('Error fetching reservation data:', error);
+      }
     };
 
-    if (userId && selectedRoomIds) {
-      getSelectedRooms();
-    }
-  }, [userId, selectedRoomIds, selectedRoomType]);
-
-  const getAvailableRooms = async () => {
-    const roomType = turkishToEnglishRoomMap[route.params.selectedRoomType]; // selectedRoomType'ı kullanın
-    const availableRoomsRef = collection(db, roomType);
-    const availableRoomsQuery = query(availableRoomsRef, ...selectedDays.map(day => where(day, '==', '')));
-  
-    const querySnapshot = await getDocs(availableRoomsQuery);
-    const availableRoomsData = querySnapshot.docs.map(doc => doc.id);
-  
-    console.log('Uygun Odaların Verisi:', availableRoomsData); // Hata ayıklama log'u
-  
-    setAvailableRooms(availableRoomsData);
-  };
-  const handleReservation = async () => {
-    // Burada rezervasyon yapma işlemlerini gerçekleştirin
-    const userDocRef = doc(db, 'users', userId);
-    const userDocSnapshot = await getDoc(userDocRef);
-
-    if (userDocSnapshot.exists()) {
-      const tcNo = userDocSnapshot.data().tcNo;
-
-      for (const roomId of selectedRoomIds) {
-        const roomDocRef = doc(db, selectedRoomType, roomId);
-        const roomDocSnapshot = await getDoc(roomDocRef);
-
-        if (roomDocSnapshot.exists()) {
-          const roomData = roomDocSnapshot.data();
-          const updatedDays = {};
-
-          // Türkçe gün adlarından İngilizce gün adlarına çevirme
-          const turkishToEnglishDayMap = {
-            'Pazartesi': 'Monday',
-            'Salı': 'Tuesday',
-            'Çarşamba': 'Wednesday',
-            'Perşembe': 'Thursday',
-            'Cuma': 'Friday',
-            'Cumartesi': 'Saturday',
-            'Pazar': 'Sunday',
-          };
-
-          for (const turkishDay in roomData) {
-            const englishDay = turkishToEnglishDayMap[turkishDay];
-            updatedDays[englishDay] = selectedRooms[0][englishDay] === tcNo ? tcNo : roomData[turkishDay];
-          }
-
-          await updateDoc(roomDocRef, updatedDays);
-        }
-      }
-
-      console.log('Rezervasyon başarıyla yapıldı!');
-    } else {
-      console.error('Kullanıcı bilgisi bulunamadı.');
-    }
-  };
+    fetchReservationData();
+  }, [userId]);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Seçilen Odalar</Text>
-      {selectedRooms.map((room, index) => (
-        <TouchableOpacity key={index} style={styles.roomContainer} onPress={() => console.log('Seçildi')}>
-          <Text style={styles.roomType}>{selectedRoomType}</Text>
-          <Text style={styles.roomInfo}>Oda No: {room.roomNo}</Text>
-          <Text style={styles.roomInfo}>Ücret: {room.Cost}</Text>
-        </TouchableOpacity>
-      ))}
-      <TouchableOpacity style={styles.reserveButton} onPress={handleReservation}>
-        <Text style={styles.reserveButtonText}>Rezervasyon Yap</Text>
-      </TouchableOpacity>
-    </ScrollView>
+    <View style={styles.container}>
+      <Text style={styles.header}>Rezervasyon Bilgileriniz</Text>
+      <FlatList
+        data={reservationData}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.itemContainer}>
+            <View style={styles.frame}>
+              <Text style={styles.itemText}>Oda Tipi: {item.roomType}</Text>
+              <Text style={styles.itemText}>Oda Numarası: {item.roomNo}</Text>
+              <Text style={styles.itemText}>Günler: {item.days.join(', ')}</Text>
+            </View>
+          </View>
+        )}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
+    flex: 1,
+    padding: 16,
   },
-  title: {
+  header: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 16,
   },
-  roomContainer: {
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: 10,
-    margin: 10,
-    backgroundColor: 'lightgrey',
+  itemContainer: {
+    marginBottom: 16,
   },
-  roomType: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
+  frame: {
+    borderColor: 'black',
+    borderWidth: 2,
+    borderRadius: 8,
+    padding: 16,
   },
-  roomInfo: {
-    fontSize: 14,
-    marginBottom: 3,
-  },
-  reserveButton: {
-    backgroundColor: 'lightblue',
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 20,
-  },
-  reserveButtonText: {
+  itemText: {
     fontSize: 16,
-    color: 'white',
-    textAlign: 'center',
+    marginBottom: 8,
   },
 });
 

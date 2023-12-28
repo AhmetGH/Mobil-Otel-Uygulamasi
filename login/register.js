@@ -16,6 +16,11 @@ export default function Register({ navigation }) {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleRegister = async () => {
+
+    if (!password || !tcNo || !email) {
+      alert('Şifre, TC No ve e-posta alanları boş bırakılamaz.');
+      return;
+    }
     // Firestore "users" koleksiyonunu referans al
     const usersCollection = collection(db, 'users');
 
@@ -49,6 +54,7 @@ export default function Register({ navigation }) {
         password: password,
         authority:'user',
       });
+      Alert.alert('Başarılı', 'Kullanıcı kaydınız başarıyla tamamlandı.');
       navigation.navigate('Login');
     } catch (error) {
       console.error('Kayıt sırasında bir hata oluştu:', error);
@@ -58,17 +64,17 @@ export default function Register({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Register</Text>
+      <Text style={styles.heading}>Kayıt Ol</Text>
 
       <TextInput
         style={styles.input}
-        placeholder="First Name"
+        placeholder="Ad"
         onChangeText={(text) => setFirstName(text)}
       />
 
       <TextInput
         style={styles.input}
-        placeholder="Last Name"
+        placeholder="Soyad"
         onChangeText={(text) => setLastName(text)}
       />
 
@@ -77,13 +83,13 @@ export default function Register({ navigation }) {
         onValueChange={(itemValue) => setGender(itemValue)}
         style={styles.picker}
       >
-        <Picker.Item label="Male" value="male" />
-        <Picker.Item label="Female" value="female" />
+        <Picker.Item label="Erkek" value="male" />
+        <Picker.Item label="Kadın" value="female" />
       </Picker>
 
       <TextInput
         style={styles.input}
-        placeholder="Age"
+        placeholder="Yaş"
         onChangeText={(text) => setAge(text)}
         keyboardType="numeric"
       />
@@ -97,30 +103,30 @@ export default function Register({ navigation }) {
 
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder="E-posta"
         onChangeText={(text) => setEmail(text)}
       />
 
       <TextInput
         style={styles.input}
-        placeholder="Password"
+        placeholder="Şifre"
         secureTextEntry
         onChangeText={(text) => setPassword(text)}
       />
 
       <TextInput
         style={styles.input}
-        placeholder="Confirm Password"
+        placeholder="Şifreyi Doğrula"
         secureTextEntry
         onChangeText={(text) => setConfirmPassword(text)}
       />
 
       <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Register</Text>
+        <Text style={styles.buttonText}>Kayıt Ol</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.loginText}>Already have an account? Login here</Text>
+        <Text style={styles.loginText}>Zaten hesabınız var mı? Buraya basarak giriş yapın.</Text>
       </TouchableOpacity>
     </View>
   );

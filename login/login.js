@@ -1,6 +1,6 @@
 // LoginForm.js
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet,Alert } from 'react-native';
 import { collection, getDocs,query, where } from "firebase/firestore";
 import { db } from '../firebase';
 
@@ -11,6 +11,12 @@ export default function Login({ navigation }) {
 
   const handleLogin = async () => {
     // Firestore "users" koleksiyonunu referans al
+    if (!email || !password) {
+      // Eğer kullanıcı adı veya şifre boşsa uyarı ver
+      Alert.alert('Uyarı', 'E-posta vaya şifre boş bırakılamaz.');
+      return;
+    }
+
     const usersCollection = query(
       collection(db, 'users'),
       where('email', '==', email),
@@ -29,6 +35,7 @@ export default function Login({ navigation }) {
         // Burada istediğiniz ekran veya işlemleri gerçekleştirebilirsiniz.
       } else {
         console.log('Kullanıcı bulunamadı veya şifre hatalı.');
+        Alert.alert('Kullanıcı bulunamadı veya şifre hatalı.');
       }
     } catch (error) {
       console.error('Giriş sırasında bir hata oluştu:', error);
@@ -37,27 +44,27 @@ export default function Login({ navigation }) {
 
     return (
       <View style={styles.container}>
-        <Text style={styles.heading}>Login</Text>
+        <Text style={styles.heading}>Giriş Yapın</Text>
 
         <TextInput
           style={styles.input}
-          placeholder="Email"
+          placeholder="E-posta"
           onChangeText={(text) => setEmail(text)}
         />
 
         <TextInput
           style={styles.input}
-          placeholder="Password"
+          placeholder="Şifre"
           secureTextEntry
           onChangeText={(text) => setPassword(text)}
         />
 
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Login</Text>
+          <Text style={styles.buttonText}>Giriş Yap</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-          <Text style={styles.registerText}>Don't have an account? Register here</Text>
+          <Text style={styles.registerText}>Hesabınız yok mu? Hemen buraya tıklayarak kaydolun. </Text>
         </TouchableOpacity>
       </View>
     );

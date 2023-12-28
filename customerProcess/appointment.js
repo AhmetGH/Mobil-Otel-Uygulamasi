@@ -1,6 +1,9 @@
-import { View, TouchableOpacity, Image, StyleSheet, Text, ScrollView } from 'react-native';
+//appointment.js
+
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import React, { useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import Swiper from 'react-native-swiper';
 
 const Appointment = ({ route }) => {
   const userId = route.params?.userId;
@@ -11,22 +14,45 @@ const Appointment = ({ route }) => {
     require('../assets/doubleroom.jpg'),
     require('../assets/doubleroomwithchild.jpg'),
   ];
-
-  const roomTypes = [
-    'Tek kişilik oda',
-    'Çift kişilik oda',
-    'Çocuklu çift kişilik oda',
+  const rooms = [
+    {
+      roomType: 'Tek kişilik oda',
+      images: [
+        require('../assets/singleRoom1.jpg'),
+        require('../assets/singleRoom2.jpg'),
+        require('../assets/singleRoom3.jpg'),
+      ],
+    },
+    {
+      roomType: 'Çift kişilik oda',
+      images: [
+        require('../assets/doubleroom1.jpg'),
+        require('../assets/doubleroom2.jpg'),
+        require('../assets/doubleroom3.jpg'),
+      ],
+    },
+    {
+      roomType: 'Çocuklu çift kişilik oda',
+      images: [
+        require('../assets/doubleroomwithchild1.jpg'),
+        require('../assets/doubleroomwithchild2.jpg'),
+        require('../assets/doubleroomwithchild3.jpg'),
+      ],
+    },
   ];
 
-  const handleRoomSelection = (index) => {
-    // Seçilen oda bilgileri
-    const selectedRoom = {
-      roomType: roomTypes[index],
-      image: images[index],
-    };
+  const roomTypes = [
+    'Tek Kişilik Oda',
+    'Çift Kişilik Oda',
+    'Çocuklu Çift Kişilik Oda',
+  ];
 
+  const handleRoomSelection = async (index) => {
+    const selectedRoomType = roomTypes[index];
+    console.log('selectedRoom', selectedRoomType);
     // Kullanıcı ID'si ve seçilen oda bilgileri ile Room sayfasına yönlendirme
-    navigation.navigate('Room', { userId, selectedRoom });
+    navigation.navigate('Room', { userId, selectedRoomType });
+    
   };
 
   useEffect(() => {
@@ -37,64 +63,59 @@ const Appointment = ({ route }) => {
   }, [userId]);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {images.map((image, index) => (
-        <View key={index} style={styles.squareContainer}>
-          <TouchableOpacity
-            style={styles.square}
-            onPress={() => handleRoomSelection(index)}
-          >
-            <Image source={image} style={styles.image} />
-            <View style={styles.textContainer}>
-              <Text style={styles.roomType}>{roomTypes[index]}</Text>
-            </View>
-          </TouchableOpacity>
+    <View style={styles.container}>
+      {rooms.map((room, roomIndex) => (
+        <View key={roomIndex} style={styles.roomContainer}>
+          <Text style={styles.roomType}>{room.roomType}</Text>
+          <Swiper style={styles.swiper} showsButtons={false} loop={false}>
+            {room.images.map((image, imageIndex) => (
+              <TouchableOpacity
+                key={imageIndex}
+                style={styles.square}
+                onPress={() => handleRoomSelection(roomIndex, imageIndex)}
+              >
+                <Image source={image} style={styles.image} />
+              </TouchableOpacity>
+            ))}
+          </Swiper>
         </View>
       ))}
-    </ScrollView>
+    </View>
   );
 };
 
-
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
-    flexDirection: 'column',
-    alignItems: 'center',
+    flex: 1,
     justifyContent: 'center',
-    paddingVertical: 10,
-  },
-  squareContainer: {
-    marginBottom: 10,
-    width: '100%',
     alignItems: 'center',
+    paddingVertical:253,
+  },
+  roomContainer: {
+    marginBottom: 0,
+  },
+  roomType: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 0,
+    marginTop:5,
+  },
+  swiper: {
+    height: 350,
   },
   square: {
-    width: 200,
-    height: 200,
-    backgroundColor: 'lightblue',
+    aspectRatio: 1,
     borderRadius: 10,
     overflow: 'hidden',
+    margin: 5,
+    width: 500, // Genişlik
+    height: 400, // Yükseklik
   },
   image: {
     width: '100%',
-    height: '100%',
+    height: '50%',
     resizeMode: 'cover',
-  },
-  textContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 10,
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-  },
-  roomType: {
-    color: 'white',
-    fontSize: 14,
-    textAlign: 'center',
+
   },
 });
 

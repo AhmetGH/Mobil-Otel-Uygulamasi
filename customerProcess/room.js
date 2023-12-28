@@ -1,163 +1,200 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, Button, Alert } from 'react-native';
+import { collection, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useNavigation } from '@react-navigation/native';
+import * as Notifications from 'expo-notifications';
 
-const turkishToEnglishDayMap = {
-  'Pazartesi': 'Monday',
-  'Salı': 'Tuesday',
-  'Çarşamba': 'Wednesday',
-  'Perşembe': 'Thursday',
-  'Cuma': 'Friday',
-  'Cumartesi': 'Saturday',
-  'Pazar': 'Sunday',
-};
+Notifications.setNotificationHandler({
+  handleNotification: async () => {
+    return {
+              shouldPlaySound: false,
+              shouldSetBadge:false,
+              shouldShowAlert: true 
+    };
+  }
+});
 
 const turkishToEnglishRoomMap = {
-  'Tek kişilik oda': 'singleRoom',
-  'Çift kişilik oda': 'doubleroom',
-  'Çocuklu çift kişilik oda': 'doubleroomwithchild',
-}
+  'Tek Kişilik Oda': 'singleRoom',
+  'Çift Kişilik Oda': 'doubleRoom',
+  'Çocuklu Çift Kişilik Oda': 'doubleRoomWithChild',
+};
+const turkishToDbDayMap = {
+  'Pt': 'Monday',
+  'S': 'Tuesday',
+  'Ç': 'Wednesday',
+  'Pşb': 'Thursday',
+  'C': 'Friday',
+  'Ct': 'Saturday',
+  'P': 'Sunday',
+};
 
 const Room = ({ route }) => {
-  const userId = route.params?.userId;
-  const selectedRoom = route.params?.selectedRoom;
-  const [selectedDays, setSelectedDays] = useState([]);
-  const [availableRooms, setAvailableRooms] = useState([]);
+  const { userId, selectedRoomType } = route.params;
+  const [availableDays, setAvailableDays] = useState([]);
+  const [roomN, setRoomN] = useState('');
+  const [roomData, setRoomData] = useState([]);
+  const [selectedDays, setSelectedDays] = useState({});
   const navigation = useNavigation();
 
-  const handleDaySelection = (day) => {
-    const englishDay = turkishToEnglishDayMap[day];
-    if (selectedDays.includes(englishDay)) {
-      setSelectedDays(selectedDays.filter((selectedDay) => selectedDay !== englishDay));
-    } else {
-      setSelectedDays([...selectedDays, englishDay]);
-    }
-  };
 
-  const getAvailableRooms = async () => {
-    const roomType = turkishToEnglishRoomMap[route.params.selectedRoom.roomType];
-    const availableRoomsRef = collection(db, roomType);
-  
-    // Seçilen günlerde hiçbir odanın dolu olup olmadığını kontrol etme
-    const availableRoomsQuery = query(availableRoomsRef, 
-      ...selectedDays.map(day => where(day, '==', ''))
-    );
-  
-    const querySnapshot = await getDocs(availableRoomsQuery);
-    const availableRoomsData = querySnapshot.docs
-      .filter(doc => {
-        const roomData = doc.data();
-        return Object.values(roomData).some(value => value !== ''); // Odanın en az bir günü dolu olmayanları filtrele
-      })
-      .map(doc => doc.id);
-  
-    console.log('Uygun Odaların Verisi:', availableRoomsData);
-  
-    setAvailableRooms(availableRoomsData);
-  };
-  
-  
-  
-  const handleSubmit = () => {
-    console.log('Seçilen Günler:', selectedDays);
-    console.log('Seçilen Oda:', { ...selectedRoom, roomType: turkishToEnglishRoomMap[selectedRoom.roomType] });
-    console.log('Kullanıcı ID:', userId);
-    console.log('Uygun Odalar:', availableRooms);
-    // Gerçek işlemleri buraya ekleyin
-    navigation.navigate('RoomResult', {
-      userId: userId,
-      selectedRoom:turkishToEnglishRoomMap[selectedRoom.roomType],
-      availableRooms: availableRooms,
+  const triggerNotificationHandler = () => {
+    Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Rezervasyon İşleminiz Başarılı.',
+        body: 'Rezervasyon işleminiz gerçekleşmiştir. Gerekli bilgiler e-posta adresinize gönderilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.'
+      },
+      trigger: {
+        seconds: 3,
+      },
     });
   };
 
   useEffect(() => {
-    if (selectedDays.length > 0) {
-      getAvailableRooms();
+    const getRoomData = async () => {
+      const englishRoomType = turkishToEnglishRoomMap[selectedRoomType];
+      const roomRef = collection(db, englishRoomType);
+      const querySnapshot = await getDocs(roomRef);
+      const roomList = querySnapshot.docs.map(doc => doc.data());
+      setRoomData(roomList);
+    };
+
+    getRoomData();
+  }, [selectedRoomType]);
+
+  const handleDaySelection = (room, day) => {
+    const dbDay = turkishToDbDayMap[day];
+    const isDayEmpty = !room[dbDay] || room[dbDay] === '';
+
+    setSelectedDays(prevState => ({
+      ...prevState,
+      [room.roomNo]: {
+        ...prevState[room.roomNo],
+        [dbDay]: !prevState[room.roomNo]?.[dbDay],
+      },
+    }));
+  };
+
+  const handleReservation = async () => {
+    try {
+      const roomRef = collection(db, turkishToEnglishRoomMap[selectedRoomType]);
+      const querySnapshot = await getDocs(roomRef);
+
+      // Her bir oda için ayrı ayrı güncelleme yap
+      querySnapshot.docs.forEach(async doc => {
+        const roomData = doc.data();
+        const updatedRoomData = { ...roomData };
+        const roomNo = roomData.roomNo;
+
+        // Eğer bu odaya ait kayıtlar varsa temizle
+        if (selectedDays[roomNo]) {
+          Object.keys(selectedDays[roomNo]).forEach(day => {
+            updatedRoomData[day] = '';
+          });
+
+          // Seçilen günleri veritabanına ekleyebilirsiniz.
+          Object.keys(selectedDays[roomNo]).forEach(day => {
+            if (selectedDays[roomNo][day]) {
+              updatedRoomData[day] = userId;
+            }
+          });
+
+          // Veritabanındaki belgeyi güncelle
+          await updateDoc(doc.ref, updatedRoomData);
+        }
+      });
+
+      // Seçilen günleri sıfırla
+      setSelectedDays({});
+      Alert.alert('Bildirim', 'Rezervasyon işleminiz gerçekleştirilmiştir.');
+      triggerNotificationHandler();
+
+      navigation.navigate('RoomResult', { userId});
+      
+    } catch (error) {
+      console.error('Error updating reservation:', error);
     }
-  }, [selectedDays]);
+  };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.roomType}>{turkishToEnglishRoomMap[selectedRoom.roomType]}</Text>
-      <View style={styles.imageContainer}>
-        <Image source={selectedRoom.image} style={styles.image} />
-      </View>
-      <Text style={styles.sectionTitle}>Haftanın Günleri</Text>
-      <View style={styles.daysContainer}>
-        {['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'].map((day, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[styles.dayButton, selectedDays.includes(turkishToEnglishDayMap[day]) && styles.selectedDay]}
-            onPress={() => handleDaySelection(day)}
-          >
-            <Text style={styles.dayButtonText}>{day}</Text>
-          </TouchableOpacity>
+    <View style={styles.container}>
+      <View style={styles.roomListContainer}>
+        <Text style={styles.roomListHeader}>Uygun {selectedRoomType}lar listesi</Text>
+        {roomData.map((room, index) => (
+          <View key={index} style={styles.roomListItem}>
+            <Text>Oda numarası: {room.roomNo}</Text>
+            <Text>Ücret: {room.Cost}</Text>
+            <Text>Günler:</Text>
+            <FlatList
+              horizontal
+              data={['Pt', 'S', 'Ç', 'Pşb', 'C', 'Ct', 'P']}
+              keyExtractor={(day) => day}
+              renderItem={({ item: day }) => {
+                const dbDay = turkishToDbDayMap[day];
+                const isDayEmpty = !room[dbDay] || room[dbDay] === '';
+
+                return (
+                  <TouchableOpacity
+                    style={[
+                      styles.dayButton,
+                      {
+                        backgroundColor: isDayEmpty
+                          ? selectedDays[room.roomNo]?.[dbDay]
+                            ? 'lightblue'
+                            : 'white'
+                          : 'red',
+                        opacity: isDayEmpty ? 1 : 0.5,
+                      },
+                    ]}
+                    disabled={!isDayEmpty}
+                    onPress={() => handleDaySelection(room, day)}
+                  >
+                    <Text style={{ color: isDayEmpty ? (selectedDays[room.roomNo]?.[dbDay] ? 'white' : 'black') : 'white' }}>
+                      {day}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              }}
+            />
+
+          </View>
         ))}
+        <Button
+          title="Rezervasyon Yap"
+          onPress={handleReservation}
+          disabled={Object.keys(selectedDays).length === 0}
+        />
       </View>
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-        <Text style={styles.submitButtonText}>Seçimi Tamamla</Text>
-      </TouchableOpacity>
-    </ScrollView>
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
+    flex: 1,
+    padding: 16,
   },
-  roomType: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
+  roomListContainer: {
+    marginTop: 20,
   },
-  imageContainer: {
-    width: '100%',
-    height: 200,
-    marginBottom: 20,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  sectionTitle: {
+  roomListHeader: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
   },
-  daysContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
+  roomListItem: {
     marginBottom: 20,
   },
   dayButton: {
-    padding: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
     margin: 5,
     borderWidth: 1,
-    borderRadius: 5,
-  },
-  selectedDay: {
-    backgroundColor: 'lightblue',
-  },
-  dayButtonText: {
-    fontSize: 16,
-  },
-  submitButton: {
-    backgroundColor: 'lightblue',
-    padding: 10,
-    borderRadius: 5,
-  },
-  submitButtonText: {
-    fontSize: 16,
-    color: 'white',
-    textAlign: 'center',
   },
 });
 

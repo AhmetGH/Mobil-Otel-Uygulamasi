@@ -85,7 +85,7 @@ export default function CreateHotel({ navigation }) {
            keyboardType="numeric"
           />
 
-          <Text style={styles.label}>Gün Seçimi:</Text>
+          <Text style={styles.label}>Oda Tipi:</Text>
           <Picker
             selectedValue={selectedRoomType}
             onValueChange={(itemValue) => setSelectedRoomType(itemValue)}

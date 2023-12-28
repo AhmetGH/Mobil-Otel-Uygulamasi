@@ -8,6 +8,8 @@ import CreateHotel from '../crudHotel/createHotel';
 import UpdateHotel from '../crudHotel/updateHotel';
 import ListHotel from '../crudHotel/listHotel';
 import Appointment from '../customerProcess/appointment';
+import Admin from '../UserOperations/admin';
+import Profile from '../UserOperations/profile';
 import App from '../App';
 import Room from '../customerProcess/room';
 import RoomResult from '../customerProcess/roomresult';
@@ -30,9 +32,9 @@ function CrudMenu() {
   return (
     <Stack.Navigator initialRouteName="MenuHotel">
       <Stack.Screen name="MenuHotel" component={MenuHotel} options={{headerShown: false}}/>
-      <Stack.Screen name="CreateHotel" component={CreateHotel} />
-      <Stack.Screen name="UpdateHotel" component={UpdateHotel} />
-      <Stack.Screen name="ListHotel" component={ListHotel} />
+      <Stack.Screen name="CreateHotel" component={CreateHotel} options={{ title: 'Menüye dön' }}/>
+      <Stack.Screen name="UpdateHotel" component={UpdateHotel} options={{ title: 'Menüye dön' }}/>
+      <Stack.Screen name="ListHotel" component={ListHotel} options={{ title: 'Menüye dön' }}/>
     </Stack.Navigator>
   );
 }
@@ -79,23 +81,39 @@ export default function MainMenu({ route, navigation }) {
 
   return (
     <Drawer.Navigator initialRouteName="ReservationMenu" independent={true}>
+      
+      <Drawer.Screen
+        name="Rezervasyon İşlemleri"
+        component={ReservationMenu}
+        options={{ userId: route.params.userId }}
+      />
       {isLoggedIn && userAuthority === 'admin' ? (
         <>
           {/* Log ekleyelim */}
           {console.log('User has admin authority.')}
 
           <Drawer.Screen
-            name="CrudMenu"
+            name="Otel işlemleri"
             component={CrudMenu}
             options={{ userId: route.params.userId }}
           />
+          <Drawer.Screen
+            name="Admin Paneli"
+            component={Admin}
+            initialParams={{ userId: route.params.userId }}
+            />
         </>
       ) : null}
       <Drawer.Screen
-        name="ReservationMenu"
-        component={ReservationMenu}
-        options={{ userId: route.params.userId }}
-      />
+        name="Profil"
+        component={Profile}
+        initialParams={{ userId: route.params.userId }}
+        />
+      <Drawer.Screen
+        name="Rezervasyonlarım"
+        component={RoomResult}
+        initialParams={{ userId: route.params.userId }}
+        />
       <Drawer.Screen
         name="Çıkış Yap"
         component={App}
@@ -116,10 +134,12 @@ function ReservationMenu() {
       <Stack.Screen
         name="Room"
         component={Room}
+        options={{ title: 'Rezervasyon Menüsüne dön' }}
         />
       <Stack.Screen
         name="RoomResult"
         component={RoomResult}
+        options={{ title: 'Rezervasyon Menüsüne dön' }}
         />
     </Stack.Navigator>
   );
