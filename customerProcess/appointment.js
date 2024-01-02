@@ -9,11 +9,6 @@ const Appointment = ({ route }) => {
   const userId = route.params?.userId;
   const navigation = useNavigation();
 
-  const images = [
-    require('../assets/singleRoom.jpg'),
-    require('../assets/doubleroom.jpg'),
-    require('../assets/doubleroomwithchild.jpg'),
-  ];
   const rooms = [
     {
       roomType: 'Tek kişilik oda',
