@@ -19,15 +19,6 @@ import { db } from '../firebase'; // Import your Firebase configuration
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
-/*function LoginMenu({ navigation }) {
-  return (
-    <Stack.Navigator initialRouteName="Login">
-      <Stack.Screen name="Login" component={Login} />
-      <Stack.Screen name="Register" component={Register} />
-    </Stack.Navigator>
-  );
-}*/
-
 function CrudMenu() {
   return (
     <Stack.Navigator initialRouteName="MenuHotel">
@@ -38,8 +29,6 @@ function CrudMenu() {
     </Stack.Navigator>
   );
 }
-
-
 
 export default function MainMenu({ route, navigation }) {
   const [isLoggedIn, setLoggedIn] = useState(false);

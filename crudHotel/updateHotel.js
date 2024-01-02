@@ -27,9 +27,6 @@ export default function App({navigation}) {
       } else {
         const data = querySnapshot.docs[0].data();
         setMaliyet(data.Cost);
-        // Diğer alanları da bu şekilde ayarlayabilirsiniz
-
-        // Şimdi alınan verileri formda gösterebilirsiniz
       }
     } catch (error) {
       console.error('Veri çekme hatası:', error);
@@ -109,9 +106,6 @@ export default function App({navigation}) {
           onChangeText={(value) => setMaliyet(value)}
           keyboardType="numeric"
         />
-
-        {/* Diğer alanlar da buraya ekleyebilirsiniz */}
-
         <TouchableOpacity style={styles.button} onPress={handleUpdateData}>
           <Text style={styles.buttonText}>Verileri Güncelle</Text>
         </TouchableOpacity>

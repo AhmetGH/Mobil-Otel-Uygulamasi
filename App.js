@@ -1,5 +1,3 @@
-// app.js
-
 import React, { useState, useEffect } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
@@ -17,7 +15,6 @@ export default function App({ route, navigation }) {
   useEffect(() => {
     if (route && route.params && route.params.userId && !isLoggedIn) {
       setLoggedIn(true);
-      // Eğer giriş yapıldıysa, MainMenu ekranına git
       navigation.navigate('MainMenu', { userId: route.params.userId });
     }
   }, [route, isLoggedIn, navigation]);

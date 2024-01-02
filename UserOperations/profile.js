@@ -39,10 +39,8 @@ const Profile = ({ route }) => {
               await deleteDoc(userRef);
               console.log('Kullanıcı başarıyla silindi.');
               navigation.navigate('Admin Paneli', { adminId});
-              // Silme başarılı olduğunda kullanıcıyı yönlendirebilir veya başka bir işlem yapabilirsiniz.
             } catch (error) {
               console.error('Kullanıcı silinirken hata oluştu:', error);
-              // Silme işlemi sırasında bir hata olursa uyarı gösterebilir veya başka bir işlem yapabilirsiniz.
             }
           },
         },
@@ -72,7 +70,7 @@ const Profile = ({ route }) => {
           setGender(userDocSnapshot.data().gender);
           setAuthority(userDocSnapshot.data().authority);
           setTelNo(userDocSnapshot.data().telNo);
-          // Password'u çekmek için yeni satır
+
           setPassword(userDocSnapshot.data().password);
         } else {
           console.log('Kullanıcı belgesi bulunamadı.');
@@ -87,9 +85,7 @@ const Profile = ({ route }) => {
 
   useEffect(() => {
     if (adminId) {
-      // Belirli kullanıcının document referansını oluştur
       const adminRef = doc(db, 'users', adminId);
-      // Belirli kullanıcının document'ini al
       const getAdminData = async () => {
         try {
           const adminDocSnapshot = await getDoc(adminRef);
@@ -127,15 +123,12 @@ const Profile = ({ route }) => {
         gender,
         authority,
         telNo,
-        // Password'u güncellemek için yeni satır
         password,
       });
       console.log('Kullanıcı profili güncellendi.');
-      // Güncelleme başarılı olduğunda uyarı göster
       Alert.alert('Başarılı', 'Kullanıcı profili başarıyla güncellendi.');
     } catch (error) {
       console.error('Kullanıcı profili güncellenirken hata oluştu:', error);
-      // Hata durumunda uyarı göster
       Alert.alert('Hata', 'Kullanıcı profili güncellenirken hata oluştu.');
     }
   };
@@ -274,21 +267,21 @@ const styles = StyleSheet.create({
   },
   label: {
     marginRight: 10,
-    width: 60, // Adjust the width as needed
+    width: 60,
   },
   input: {
     height: 40,
     borderColor: 'gray',
     borderWidth: 1,
     padding: 10,
-    flex: 1, // Take the remaining width
+    flex: 1,
   },
   buttonContainer: {
     flexDirection: 'row',
-    marginTop: 20, // İhtiyaca göre ayarlayabilirsiniz
+    marginTop: 20, 
   },
   deleteButton: {
-    marginLeft: 10, // İhtiyaca göre ayarlayabilirsiniz
+    marginLeft: 10, 
     backgroundColor: 'red',
     padding: 10,
     borderRadius: 5,

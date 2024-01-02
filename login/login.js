@@ -1,4 +1,3 @@
-// LoginForm.js
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet,Alert } from 'react-native';
 import { collection, getDocs,query, where } from "firebase/firestore";
@@ -10,9 +9,8 @@ export default function Login({ navigation }) {
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
-    // Firestore "users" koleksiyonunu referans al
+
     if (!email || !password) {
-      // Eğer kullanıcı adı veya şifre boşsa uyarı ver
       Alert.alert('Uyarı', 'E-posta vaya şifre boş bırakılamaz.');
       return;
     }
@@ -24,15 +22,12 @@ export default function Login({ navigation }) {
     );
 
     try {
-      // Kullanıcıyı sorgula
       const querySnapshot = await getDocs(usersCollection);
 
-      // Eğer kullanıcı varsa giriş başarılı mesajını konsola yazdır
       if (!querySnapshot.empty) {
         console.log('Giriş başarılı!');
         const userId = querySnapshot.docs[0].id;
         navigation.navigate('MainMenu', { userId });
-        // Burada istediğiniz ekran veya işlemleri gerçekleştirebilirsiniz.
       } else {
         console.log('Kullanıcı bulunamadı veya şifre hatalı.');
         Alert.alert('Kullanıcı bulunamadı veya şifre hatalı.');
