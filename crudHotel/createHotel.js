@@ -1,6 +1,6 @@
 // createHotel.js
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { collection, getDocs, addDoc, query, where } from "firebase/firestore";
 import { db } from '../firebase';
@@ -41,6 +41,7 @@ export default function CreateHotel({ navigation }) {
           alert('Bu oda numarası zaten kullanımda!');
         } else {
           // Room number doesn't exist, proceed with adding the document
+          Alert.alert('Bildirim', 'Oda Ekleme işleminiz gerçekleştirilmiştir.');
           addDoc(roomCollection, {
             Cost: maliyet,
             roomNo: odaNumarasi,

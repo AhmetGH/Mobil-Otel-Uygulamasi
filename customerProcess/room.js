@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, Button, Alert } from 'react-native';
-import { collection, getDocs, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, updateDoc,addDoc ,doc,getDoc} from 'firebase/firestore';
 import { db } from '../firebase';
 import { useNavigation } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 
+
 Notifications.setNotificationHandler({
-  handleNotification: async () => {
-    return {
-              shouldPlaySound: false,
-              shouldSetBadge:false,
-              shouldShowAlert: true 
-    };
-  }
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
 });
+
 
 const turkishToEnglishRoomMap = {
   'Tek Kişilik Oda': 'singleRoom',
@@ -32,24 +32,21 @@ const turkishToDbDayMap = {
 
 const Room = ({ route }) => {
   const { userId, selectedRoomType } = route.params;
-  const [availableDays, setAvailableDays] = useState([]);
-  const [roomN, setRoomN] = useState('');
+  const [isSucces,setSucces]=useState(false);
   const [roomData, setRoomData] = useState([]);
   const [selectedDays, setSelectedDays] = useState({});
   const navigation = useNavigation();
 
-
-  const triggerNotificationHandler = () => {
-    Notifications.scheduleNotificationAsync({
+  async function orderNotification() {
+    await Notifications.scheduleNotificationAsync({
       content: {
-        title: 'Rezervasyon İşleminiz Başarılı.',
-        body: 'Rezervasyon işleminiz gerçekleşmiştir. Gerekli bilgiler e-posta adresinize gönderilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.'
+        title: "Rezervasyon İşleminiz Başarılı",
+        body: 'Rezervasyon işleminiz gerçekleşmiştir. Gerekli bilgiler e-posta adresinize gönderilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.',
+        data: { data: 'goes here' },
       },
-      trigger: {
-        seconds: 3,
-      },
-    });
-  };
+      trigger: { seconds: 2 },
+      });
+  }
 
   useEffect(() => {
     const getRoomData = async () => {
@@ -80,37 +77,58 @@ const Room = ({ route }) => {
     try {
       const roomRef = collection(db, turkishToEnglishRoomMap[selectedRoomType]);
       const querySnapshot = await getDocs(roomRef);
-
-      // Her bir oda için ayrı ayrı güncelleme yap
-      querySnapshot.docs.forEach(async doc => {
-        const roomData = doc.data();
-        const updatedRoomData = { ...roomData };
-        const roomNo = roomData.roomNo;
-
-        // Eğer bu odaya ait kayıtlar varsa temizle
-        if (selectedDays[roomNo]) {
-          Object.keys(selectedDays[roomNo]).forEach(day => {
-            updatedRoomData[day] = '';
-          });
-
-          // Seçilen günleri veritabanına ekleyebilirsiniz.
-          Object.keys(selectedDays[roomNo]).forEach(day => {
-            if (selectedDays[roomNo][day]) {
-              updatedRoomData[day] = userId;
-            }
-          });
-
-          // Veritabanındaki belgeyi güncelle
-          await updateDoc(doc.ref, updatedRoomData);
-        }
-      });
-
-      // Seçilen günleri sıfırla
-      setSelectedDays({});
-      Alert.alert('Bildirim', 'Rezervasyon işleminiz gerçekleştirilmiştir.');
-      triggerNotificationHandler();
-
-      navigation.navigate('RoomResult', { userId});
+  
+      // Kullanıcı bilgilerini almak için kullanıcı referansını oluştur
+      const userRef = doc(db, 'users', userId);
+      const userDocSnapshot = await getDoc(userRef);
+  
+      if (userDocSnapshot.exists()) {
+        const userData = userDocSnapshot.data();
+        
+        // Her bir oda için ayrı ayrı güncelleme yap
+        querySnapshot.docs.forEach(async doc => {
+          const roomData = doc.data();
+          const updatedRoomData = { ...roomData };
+          const roomNo = roomData.roomNo;
+  
+          // Eğer bu odaya ait kayıtlar varsa temizle
+          if (selectedDays[roomNo]) {
+            Object.keys(selectedDays[roomNo]).forEach(day => {
+              updatedRoomData[day] = '';
+            });
+  
+            // Seçilen günleri veritabanına ekleyebilirsiniz.
+            Object.keys(selectedDays[roomNo]).forEach(day => {
+              if (selectedDays[roomNo][day]) {
+                updatedRoomData[day] = userId;
+              }
+            });
+  
+            // Veritabanındaki belgeyi güncelle
+            await updateDoc(doc.ref, updatedRoomData);
+            
+            // Rezervasyon işlemi başarılı olduğunda "entry" koleksiyonuna doküman ekle
+            await addDoc(collection(db, 'entry'), {
+              roomNo,
+              roomType: selectedRoomType,
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+              tcNo: userData.tcNo,
+              cost: roomData.Cost,
+            });
+          }
+        });
+  
+        // Seçilen günleri sıfırla
+        setSelectedDays({});
+        Alert.alert('Bildirim', 'Rezervasyon işleminiz gerçekleştirilmiştir.');
+        await orderNotification();
+        
+        navigation.navigate('Appointment',{ userId });
+        navigation.navigate('Rezervasyonlarım', { userId });
+      } else {
+        console.error('Kullanıcı belgesi bulunamadı.');
+      }
       
     } catch (error) {
       console.error('Error updating reservation:', error);

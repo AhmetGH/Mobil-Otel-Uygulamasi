@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical:253,
+    paddingVertical:265,
   },
   roomContainer: {
     marginBottom: 0,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity,Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { collection, query, where, getDocs,updateDoc } from "firebase/firestore";
 import { db } from '../firebase';
@@ -60,6 +60,7 @@ export default function App({navigation}) {
   
         // Veriyi güncelleyin
         await updateDoc(docRef, updatedData);
+        Alert.alert('Bildirim', 'Oda Güncelleme işleminiz gerçekleştirilmiştir.');
   
         console.log('Veri güncellendi');
       }

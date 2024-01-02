@@ -1,5 +1,3 @@
-// admin.js
-
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';

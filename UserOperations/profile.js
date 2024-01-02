@@ -1,9 +1,9 @@
-// profile.js
-
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Button, Alert,TouchableOpacity, } from 'react-native';
 import { doc, getDoc, updateDoc,deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useNavigation } from '@react-navigation/native';
+
 
 const Profile = ({ route }) => {
   const [userData, setUserData] = useState(null);
@@ -17,6 +17,7 @@ const Profile = ({ route }) => {
   const [telNo, setTelNo] = useState('');
   const [password, setPassword] = useState('');
   const [adminAuthorityId,setAdminAuthorityId]=useState('');
+  const navigation = useNavigation();
 
   const userId = route?.params?.userId;
   const adminId=route?.params?.adminId;
@@ -37,6 +38,7 @@ const Profile = ({ route }) => {
               const userRef = doc(db, 'users', userId);
               await deleteDoc(userRef);
               console.log('Kullanıcı başarıyla silindi.');
+              navigation.navigate('Admin Paneli', { adminId});
               // Silme başarılı olduğunda kullanıcıyı yönlendirebilir veya başka bir işlem yapabilirsiniz.
             } catch (error) {
               console.error('Kullanıcı silinirken hata oluştu:', error);

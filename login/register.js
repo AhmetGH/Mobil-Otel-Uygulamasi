@@ -1,6 +1,6 @@
 // Register.js
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet,Alert} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { collection, getDocs, addDoc, query, where } from "firebase/firestore";
 import { db } from '../firebase';

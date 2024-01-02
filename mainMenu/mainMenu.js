@@ -1,6 +1,5 @@
 // mainMenu.js
 import React, { useState, useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import MenuHotel from '../crudHotel/menuHotel';
@@ -13,7 +12,8 @@ import Profile from '../UserOperations/profile';
 import App from '../App';
 import Room from '../customerProcess/room';
 import RoomResult from '../customerProcess/roomresult';
-import { collection, getDoc, query, where,doc} from 'firebase/firestore';
+import Entry from '../UserOperations/entry';
+import {getDoc,doc} from 'firebase/firestore';
 import { db } from '../firebase'; // Import your Firebase configuration
 
 const Stack = createStackNavigator();
@@ -89,7 +89,6 @@ export default function MainMenu({ route, navigation }) {
       />
       {isLoggedIn && userAuthority === 'admin' ? (
         <>
-          {/* Log ekleyelim */}
           {console.log('User has admin authority.')}
 
           <Drawer.Screen
@@ -102,6 +101,11 @@ export default function MainMenu({ route, navigation }) {
             component={Admin}
             initialParams={{ userId: route.params.userId }}
             />
+          <Drawer.Screen
+            name="Giriş Kaydı"
+            component={Entry}
+            initialParams={{ userId: route.params.userId }}
+          />
         </>
       ) : null}
       <Drawer.Screen
@@ -134,12 +138,8 @@ function ReservationMenu() {
       <Stack.Screen
         name="Room"
         component={Room}
-        options={{ title: 'Rezervasyon Menüsüne dön' }}
-        />
-      <Stack.Screen
-        name="RoomResult"
-        component={RoomResult}
-        options={{ title: 'Rezervasyon Menüsüne dön' }}
+        options={{ title: 'Rezervasyon Menüsüne dön' ,
+      }}
         />
     </Stack.Navigator>
   );

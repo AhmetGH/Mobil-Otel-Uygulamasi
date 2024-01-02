@@ -10,10 +10,9 @@ import MainMenu from './mainMenu/mainMenu';
 
 const Stack = createStackNavigator();
 
+
 export default function App({ route, navigation }) {
   const [isLoggedIn, setLoggedIn] = useState(false);
-
-
 
   useEffect(() => {
     if (route && route.params && route.params.userId && !isLoggedIn) {
@@ -35,20 +34,3 @@ export default function App({ route, navigation }) {
     </SafeAreaProvider>
   );
 }
-
-/*<NavigationContainer>
-      <Drawer.Navigator initialRouteName={isLoggedIn ? "ReservationMenu" : "LoginMenu"} drawerType={isLoggedIn ? 'slide' : 'front'}>
-        {isLoggedIn ? (
-          <>
-            <Drawer.Screen name="CrudMenu" component={CrudMenu} />
-            <Drawer.Screen name="ReservationMenu" component={ReservationMenu} />
-          </>
-        ) : (
-          <Drawer.Screen
-            name="LoginMenu"
-            component={LoginMenu}
-            options={{ swipeEnabled: false }}
-          />
-        )}
-      </Drawer.Navigator>
-    </NavigationContainer>*/
