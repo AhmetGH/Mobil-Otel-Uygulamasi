@@ -81,7 +81,7 @@ export default function App({navigation}) {
         </Picker>
 
         <TouchableOpacity style={styles.button} onPress={handleFetchData}>
-          <Text style={styles.buttonText}>Verileri Getir</Text>
+          <Text style={styles.buttonText}>Odaları Getir</Text>
         </TouchableOpacity>
 
         <FlatList
@@ -141,12 +141,13 @@ const styles = StyleSheet.create({
   },
   roomItem: {
     borderColor: 'gray',
-    borderWidth: 1,
+    borderWidth: 2,
     padding: 8,
     marginBottom: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    borderRadius:10,
   },
   deleteButton: {
     color: 'red',

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation,useFocusEffect } from '@react-navigation/native';
 import { db } from '../firebase';
 
 const Admin = ({ route}) => {
@@ -9,16 +9,18 @@ const Admin = ({ route}) => {
   const navigation = useNavigation();
   const adminId = route.params?.userId;
 
-  useEffect(() => {
-    const getUsers = async () => {
-      const usersRef = collection(db, 'users');
-      const querySnapshot = await getDocs(usersRef);
-      const userList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setUsers(userList);
-    };
-
-    getUsers();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      const getUsers = async () => {
+        const usersRef = collection(db, 'users');
+        const querySnapshot = await getDocs(usersRef);
+        const userList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setUsers(userList);
+      };
+  
+      getUsers();
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
@@ -29,7 +31,7 @@ const Admin = ({ route}) => {
         renderItem={({ item }) => (
           <TouchableOpacity 
             style={styles.userItem}
-            onPress={() => navigation.navigate('Profil', { adminId,userId: item.id })}
+            onPress={() => navigation.navigate('Admin Profile', { adminId,userId: item.id })}
           >
             <Text style={styles.username}>{item.firstName}</Text>
             <Text style={styles.email}>{item.email}</Text>

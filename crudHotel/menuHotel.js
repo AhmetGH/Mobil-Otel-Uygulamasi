@@ -8,7 +8,7 @@ export default function App({ navigation }) {
 
     return (
       <View style={styles.container}>
-        <Text style={styles.heading}>Otel Menüsü</Text>
+        <Text style={styles.heading}>Otel Odası İşlemleri</Text>
 
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate("CreateHotel")}>
           <Text style={styles.menuText}>Oda Ekle</Text>

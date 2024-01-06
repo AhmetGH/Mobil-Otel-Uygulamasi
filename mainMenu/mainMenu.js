@@ -9,6 +9,7 @@ import ListHotel from '../crudHotel/listHotel';
 import Appointment from '../customerProcess/appointment';
 import Admin from '../UserOperations/admin';
 import Profile from '../UserOperations/profile';
+import AdminProfile from '../UserOperations/adminprofile';
 import App from '../App';
 import Room from '../customerProcess/room';
 import RoomResult from '../customerProcess/roomresult';
@@ -18,6 +19,7 @@ import { db } from '../firebase'; // Import your Firebase configuration
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
+const AdminProfileDrawerItem = () => null;
 
 function CrudMenu() {
   return (
@@ -78,7 +80,6 @@ export default function MainMenu({ route, navigation }) {
       />
       {isLoggedIn && userAuthority === 'admin' ? (
         <>
-          {console.log('User has admin authority.')}
 
           <Drawer.Screen
             name="Otel işlemleri"
@@ -95,6 +96,13 @@ export default function MainMenu({ route, navigation }) {
             component={Entry}
             initialParams={{ userId: route.params.userId }}
           />
+          <Drawer.Screen
+            name="Admin Profile"
+            component={AdminProfile}
+            options={{
+              drawerItemStyle: { height: 0 }
+            }}
+            />
         </>
       ) : null}
       <Drawer.Screen

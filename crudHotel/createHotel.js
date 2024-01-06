@@ -130,6 +130,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 16,
     paddingHorizontal: 10,
+    borderRadius:10,
   },
   picker: {
     height: 40,

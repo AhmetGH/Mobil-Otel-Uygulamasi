@@ -5,7 +5,7 @@ import { db } from '../firebase';
 import { useNavigation } from '@react-navigation/native';
 
 
-const Profile = ({ route }) => {
+const AdminProfile = ({ route }) => {
   const [userData, setUserData] = useState(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -16,9 +16,11 @@ const Profile = ({ route }) => {
   const [authority, setAuthority] = useState('');
   const [telNo, setTelNo] = useState('');
   const [password, setPassword] = useState('');
+  const [adminAuthorityId,setAdminAuthorityId]=useState('');
   const navigation = useNavigation();
 
   const userId = route?.params?.userId;
+  const adminId=route?.params?.adminId;
 
   const deleteUser = async () => {
     Alert.alert(
@@ -38,7 +40,7 @@ const Profile = ({ route }) => {
               console.log('Kullanıcı başarıyla silindi.');
               Alert.alert('Başarılı', 'Kullanıcı başarıyla silindi.');
 
-              navigation.navigate('Çıkış Yap');
+              navigation.navigate('Admin Paneli', { adminId});
             } catch (error) {
               console.error('Kullanıcı silinirken hata oluştu:', error);
             }
@@ -83,7 +85,27 @@ const Profile = ({ route }) => {
     getUserData();
   }, [userId]);
 
+  useEffect(() => {
+    if (adminId) {
+      const adminRef = doc(db, 'users', adminId);
+      const getAdminData = async () => {
+        try {
+          const adminDocSnapshot = await getDoc(adminRef);
   
+          if (adminDocSnapshot.exists()) {
+            const adminAuthorityValue = adminDocSnapshot.data().authority;
+            setAdminAuthorityId(adminDocSnapshot.data().authority);
+          } else {
+            console.log('Admin belgesi bulunamadı.');
+          }
+        } catch (error) {
+          console.error('Admin belgesi alınırken hata oluştu:', error);
+        }
+      };
+  
+      getAdminData();
+    }
+  }, [adminId]);
 
   const updateUserProfile = async () => {
     const userRef = doc(db, 'users', userId);
@@ -201,12 +223,27 @@ const Profile = ({ route }) => {
           />
       </View>
       <View style={styles.inputContainer}>
+       {adminAuthorityId === 'admin' && (
+        <>
+        <Text style={styles.label}>Kimlik:</Text>
+        <TextInput
+            style={styles.input}
+            value={authority}
+            onChangeText={setAuthority}
+            placeholder="Kimlik"
+        />
+        </>
+        )}
     </View>
     <View style={styles.buttonContainer}>
+    {adminAuthorityId !== 'admin' && (
       <Button title="Güncelle" onPress={updateUserProfile} />
+      )}
+      {adminAuthorityId === 'admin' && (
         <TouchableOpacity onPress={deleteUser} style={styles.deleteButton}>
           <Text style={styles.deleteButtonText}>Hesabı Sil</Text>
         </TouchableOpacity>
+      )}
     </View>
   </View>
 );
@@ -258,4 +295,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Profile;
+export default AdminProfile;
